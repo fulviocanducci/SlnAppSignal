@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Web.Hubs;
 using Web.Models;
+using Web.Repositories;
 
 namespace Web
 {
@@ -17,6 +18,9 @@ namespace Web
          {
             options.UseSqlServer(builder.Configuration.GetConnectionString("DataAccessContext"));
          });
+         builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+         builder.Services.AddScoped<RepositoryPeopleBase, RepositoryPeople>();
+
          var app = builder.Build();
          if (!app.Environment.IsDevelopment())
          {

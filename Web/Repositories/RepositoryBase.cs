@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using System.Linq.Expressions;
 using Web.Models;
 using Web.Repositories.Base;
 
@@ -24,6 +25,11 @@ namespace Web.Repositories
       public IAsyncEnumerable<T> AllAsync()
       {
          return _model.AsAsyncEnumerable();
+      }
+
+      public async Task<bool> AnyAsync(Expression<Func<T, bool>> where)
+      {
+         return await _model.AsNoTracking().AnyAsync(where);
       }
 
       public async Task<long> CountAsync()

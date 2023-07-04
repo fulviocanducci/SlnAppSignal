@@ -11,16 +11,21 @@ namespace Web.Controllers
    {
       private readonly RepositoryPeopleBase RepositoryPeople;
       private readonly IHubContext<CountHub, ICountHub> HubCountContext;
+      private readonly IUnitOfWork UnitOfWork;
 
       private async Task SendHubCountAsync()
       {
          await HubCountContext.Clients.All.SendCountAsync(await RepositoryPeople.CountAsync());
       }
 
-      public PeopleController(DataAccessContext context, IHubContext<CountHub, ICountHub> hubCountContext, RepositoryPeopleBase repositoryPeople)
+      public PeopleController(
+         IHubContext<CountHub, ICountHub> hubCountContext,
+         RepositoryPeopleBase repositoryPeople,
+         IUnitOfWork unitOfWork)
       {
-         RepositoryPeople = repositoryPeople;
-         HubCountContext = hubCountContext;
+         UnitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
+         RepositoryPeople = repositoryPeople ?? throw new ArgumentNullException(nameof(repositoryPeople));
+         HubCountContext = hubCountContext ?? throw new ArgumentNullException(nameof(hubCountContext));
       }
 
       public IActionResult Index()
@@ -54,7 +59,7 @@ namespace Web.Controllers
          if (ModelState.IsValid)
          {
             await RepositoryPeople.AddAsync(people);
-            if ((await Context.SaveChangesAsync()) > 0)
+            if ((await UnitOfWork.CommitAsync()) > 0)
             {
                await SendHubCountAsync();
             }
@@ -63,15 +68,13 @@ namespace Web.Controllers
          return View(people);
       }
 
-      // GET: People/Edit/5
       public async Task<IActionResult> Edit(long? id)
       {
-         if (id == null || Context.Peoples == null)
+         if (id == null)
          {
             return NotFound();
          }
-
-         var people = await Context.Peoples.FindAsync(id);
+         var people = await RepositoryPeople.FindAsync(id);
          if (people == null)
          {
             return NotFound();
@@ -79,9 +82,6 @@ namespace Web.Controllers
          return View(people);
       }
 
-      // POST: People/Edit/5
-      // To protect from overposting attacks, enable the specific properties you want to bind to.
-      // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
       [HttpPost]
       [ValidateAntiForgeryToken]
       public async Task<IActionResult> Edit(long id, [Bind("Id,Name")] People people)
@@ -95,15 +95,15 @@ namespace Web.Controllers
          {
             try
             {
-               Context.Update(people);
-               if ((await Context.SaveChangesAsync()) > 0)
+               RepositoryPeople.UpdateAsync(people);
+               if ((await UnitOfWork.CommitAsync()) > 0)
                {
                   await SendHubCountAsync();
                }
             }
             catch (DbUpdateConcurrencyException)
             {
-               if (!PeopleExists(people.Id))
+               if (!await PeopleExists(people.Id))
                {
                   return NotFound();
                }
@@ -119,17 +119,15 @@ namespace Web.Controllers
 
       public async Task<IActionResult> Delete(long? id)
       {
-         if (id == null || Context.Peoples == null)
+         if (id == null)
          {
             return NotFound();
          }
-
-         var people = await Context.Peoples.FirstOrDefaultAsync(m => m.Id == id);
+         var people = await RepositoryPeople.FindAsync(id);
          if (people == null)
          {
             return NotFound();
          }
-
          return View(people);
       }
 
@@ -137,26 +135,21 @@ namespace Web.Controllers
       [ValidateAntiForgeryToken]
       public async Task<IActionResult> DeleteConfirmed(long id)
       {
-         if (Context.Peoples == null)
-         {
-            return Problem("Entity set 'DataAccessContext.Peoples'  is null.");
-         }
-         var people = await Context.Peoples.FindAsync(id);
+         var people = await RepositoryPeople.FindAsync(id);
          if (people != null)
          {
-            Context.Peoples.Remove(people);
+            RepositoryPeople.Remove(people);
          }
-
-         if ((await Context.SaveChangesAsync()) > 0)
+         if ((await UnitOfWork.CommitAsync()) > 0)
          {
             await SendHubCountAsync();
          }
          return RedirectToAction(nameof(Index));
       }
 
-      private bool PeopleExists(long id)
+      private async Task<bool> PeopleExists(long id)
       {
-         return (Context.Peoples?.Any(e => e.Id == id)).GetValueOrDefault();
+         return await RepositoryPeople.AnyAsync(e => e.Id == id);
       }
    }
 }

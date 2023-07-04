@@ -6,6 +6,7 @@
       IFindAsync<T>,
       IRemove<T>,
       ICountAsync<T>,
+      IAnyAsync<T>,
       IAllAsync<T> where T: class, new()
    { }
 }
