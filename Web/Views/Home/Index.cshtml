@@ -1,0 +1,31 @@
+﻿@{
+   ViewData["Title"] = "Home Page";
+}
+<div class="text-center">
+   <h1 class="display-4">Welcome</h1>
+   <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+</div>
+<div class="text-center">
+   <h4>Quantidade de Pessoas</h4>
+   <div id="div-count-hub">Carregando ...</div>
+</div>
+@section Scripts {
+   <script>
+      $(document).ready(function () {
+         const connection = new signalR.HubConnectionBuilder()
+            .withUrl("/count-hub")
+            .configureLogging(signalR.LogLevel.Information)
+            .withAutomaticReconnect()
+            .build();
+         connection.start()
+            .then(function () {
+               connection.on('SendCountAsync', function (count) {
+                  document.getElementById("div-count-hub").innerHTML = count;
+               });
+               setTimeout(function () {
+                  connection.invoke("GetCountAsync");
+               }, 2000);
+            });
+      });
+   </script>
+}
