@@ -18,6 +18,20 @@ namespace Web.Controllers
          await HubCountContext.Clients.All.SendCountAsync(await RepositoryPeople.CountAsync());
       }
 
+      private async Task<People?> GetPeopleByIdAsync(long? id)
+      {
+         if (id == null)
+         {
+            return null;
+         }
+         return await RepositoryPeople.FindAsync(id);
+      }
+
+      private async Task<bool> PeopleExists(long id)
+      {
+         return await RepositoryPeople.AnyAsync(e => e.Id == id);
+      }
+
       public PeopleController(
          IHubContext<CountHub, ICountHub> hubCountContext,
          RepositoryPeopleBase repositoryPeople,
@@ -39,7 +53,7 @@ namespace Web.Controllers
          {
             return NotFound();
          }
-         var people = await RepositoryPeople.FindAsync(id);
+         var people = await GetPeopleByIdAsync(id);
          if (people == null)
          {
             return NotFound();
@@ -56,16 +70,24 @@ namespace Web.Controllers
       [ValidateAntiForgeryToken]
       public async Task<IActionResult> Create([Bind("Id,Name")] People people)
       {
-         if (ModelState.IsValid)
+         try
          {
-            await RepositoryPeople.AddAsync(people);
-            if ((await UnitOfWork.CommitAsync()) > 0)
+            if (ModelState.IsValid)
             {
-               await SendHubCountAsync();
+               await RepositoryPeople.AddAsync(people);
+               if ((await UnitOfWork.CommitAsync()) > 0)
+               {
+                  await SendHubCountAsync();
+               }
+               return RedirectToAction(nameof(Index));
             }
-            return RedirectToAction(nameof(Index));
+            return View(people);
          }
-         return View(people);
+         catch (Exception)
+         {
+            throw;
+         }
+         
       }
 
       public async Task<IActionResult> Edit(long? id)
@@ -74,7 +96,7 @@ namespace Web.Controllers
          {
             return NotFound();
          }
-         var people = await RepositoryPeople.FindAsync(id);
+         var people = await GetPeopleByIdAsync(id);
          if (people == null)
          {
             return NotFound();
@@ -123,7 +145,7 @@ namespace Web.Controllers
          {
             return NotFound();
          }
-         var people = await RepositoryPeople.FindAsync(id);
+         var people = await GetPeopleByIdAsync(id);
          if (people == null)
          {
             return NotFound();
@@ -135,7 +157,7 @@ namespace Web.Controllers
       [ValidateAntiForgeryToken]
       public async Task<IActionResult> DeleteConfirmed(long id)
       {
-         var people = await RepositoryPeople.FindAsync(id);
+         var people = await GetPeopleByIdAsync(id);
          if (people != null)
          {
             RepositoryPeople.Remove(people);
@@ -145,11 +167,6 @@ namespace Web.Controllers
             await SendHubCountAsync();
          }
          return RedirectToAction(nameof(Index));
-      }
-
-      private async Task<bool> PeopleExists(long id)
-      {
-         return await RepositoryPeople.AnyAsync(e => e.Id == id);
       }
    }
 }
