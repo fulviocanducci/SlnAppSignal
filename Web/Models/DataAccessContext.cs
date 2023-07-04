@@ -12,6 +12,7 @@ namespace Web.Models
 
       protected override void OnModelCreating(ModelBuilder modelBuilder)
       {
+         //modelBuilder.UseCollation("Latin1_General_CI_AI");
          modelBuilder.ApplyConfiguration(new PeopleMapping());
       }
    }
