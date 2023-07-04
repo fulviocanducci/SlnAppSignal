@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using Web.Hubs;
 using Web.Models;
 using Web.Repositories;
-
 namespace Web.Controllers
 {
    public class PeopleController : Controller
@@ -42,9 +41,12 @@ namespace Web.Controllers
          HubCountContext = hubCountContext ?? throw new ArgumentNullException(nameof(hubCountContext));
       }
 
-      public IActionResult Index()
+      public async Task<IActionResult> Index([FromQuery] int? current, [FromQuery] string? filter = null)
       {
-         return View(RepositoryPeople.AllAsync(x => x.OrderBy(a => a.Name)));
+         Func<IQueryable<People>, IOrderedQueryable<People>>? orderBy = x => x.OrderBy(x => x.Name).ThenBy(x => x.Id);
+         Func<IQueryable<People>, IQueryable<People>>? where = string.IsNullOrEmpty(filter) ? null : x => x.Where(x => x.Name.Contains(filter));
+         ViewBag.Filter = filter;
+         return View(await RepositoryPeople.PaginationAsync(current ?? 1, orderBy: orderBy, where: where));
       }
 
       public async Task<IActionResult> Details(long? id)
@@ -87,7 +89,7 @@ namespace Web.Controllers
          {
             throw;
          }
-         
+
       }
 
       public async Task<IActionResult> Edit(long? id)

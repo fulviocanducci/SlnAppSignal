@@ -2,48 +2,67 @@
 @{
    ViewData["Title"] = "Index";
 }
-<h1>Index</h1>
-<p>
-   <a asp-action="Create">Create New</a>
-</p>
-<table class="table table-sm">
-   <thead>
-      <tr>
-         <th>
-            Nome Completo
-         </th>
-         <th></th>
-      </tr>
-   </thead>
-   <tbody>
-      @foreach (var item in Model)
-      {
-         <tr>
-            <td class="col-md-10 text-start">
-               @Html.DisplayFor(modelItem => item.Name)
-            </td>
-            <td class="col-md-2 text-center">
-               <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-               <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-               <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-         </tr>
-      }
-   </tbody>
-</table>
-<div>
-   <pagination pagination-asp-action="Index"
-               pagination-asp-controller="Home"
-               pagination-style="NumbersWithFirstPreviousNextLast"
-               pagination-css-class-li-active="active"
-               pagination-css-class-ul="pagination"
-               pagination-paginated="Model"
-               pagination-label-next="Next"
-               pagination-label-previous="Previous"
-               pagination-label-first="First"
-               pagination-label-last="Last"
-               pagination-css-class-anchor="page-link"
-               pagination-css-class-li="page-item"
-               pagination-css-class-li-disabled="disabled">
-   </pagination>
+<h1>Pessoas: Lista</h1>
+<div class="mt-2 mb-2 d-flex justify-content-center">
+   <a asp-action="Create" class="btn btn-sm btn-primary"><i class="bi bi-plus"></i> Novo</a>
 </div>
+<div class="mt-2 mb-2">
+   <form method="get" asp-action="Index">
+      <div class="input-group input-group-sm mb-3">
+         <input name="filter" type="text" class="form-control" value="@ViewBag.Filter" placeholder="Digite o nome" aria-label="Digite o nome" aria-describedby="button-addon2" autofocus>
+         <button class="btn btn-sm btn-outline-primary" type="submit" id="button-addon2">Filtrar</button>
+      </div>
+   </form>
+</div>
+@if (Model.Any())
+{
+   <table class="table table-sm mt-2 mb-2">
+      <thead>
+         <tr>
+            <th>
+               Nome Completo
+            </th>
+            <th></th>
+         </tr>
+      </thead>
+      <tbody>
+         @foreach (var item in Model)
+         {
+            <tr>
+               <td class="col-md-10 text-start">
+                  @Html.DisplayFor(modelItem => item.Name)
+               </td>
+               <td class="col-md-2 text-center">
+                  <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-primary btn-sm"><i class="bi bi-pencil"></i></a>
+                  <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-secondary btn-sm"><i class="bi bi-binoculars"></i></a> 
+                  <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-danger btn-sm"><i class="bi bi-trash2"></i></a>
+               </td>
+            </tr>
+         }
+      </tbody>
+   </table>
+}
+else
+{
+   <div class="alert alert-secondary" role="alert">
+      Nenhum item foi encontrado...
+   </div>
+}
+@if (Model.HasPreviousPage || Model.HasNextPage)
+{
+   <div>
+      <pagination pagination-asp-action="Index"
+                  pagination-asp-controller="People"
+                  pagination-style="NumbersWithFirstPreviousNextLast"
+                  pagination-css-class-li-active="active"
+                  pagination-css-class-ul="pagination pagination-sm justify-content-center"
+                  pagination-paginated="Model"
+                  pagination-label-next="Próximo"
+                  pagination-label-previous="Anterior"
+                  pagination-css-class-anchor="page-link"
+                  pagination-css-class-li="page-item"
+                  pagination-css-class-li-disabled="disabled"
+                  pagination-asp-route-filter="@ViewBag.Filter">
+      </pagination>
+   </div>
+}

@@ -14,13 +14,18 @@ namespace Web
 
          builder.Services.AddControllersWithViews();
          builder.Services.AddSignalR();
+         builder.Services.Configure<RouteOptions>(options =>
+         {
+            options.LowercaseUrls = true;
+            options.LowercaseQueryStrings = true;
+         });
          builder.Services.AddDbContext<DataAccessContext>(options =>
          {
             options.UseSqlServer(builder.Configuration.GetConnectionString("DataAccessContext"));
          });
          builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
          builder.Services.AddScoped<RepositoryPeopleBase, RepositoryPeople>();
-
+         
          var app = builder.Build();
          if (!app.Environment.IsDevelopment())
          {

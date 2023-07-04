@@ -12,13 +12,4 @@ namespace Web.Repositories.Base
       IPagination<T>,
       IAllAsync<T> where T : class, new()
    { }
-   public interface IPagination<T>
-   {
-      public IPagination<T> PaginationAsync
-      (
-         int? current,
-         Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
-         Func<IQueryable<T>, IQueryable<T>>? where = null
-      );
-   }
 }
