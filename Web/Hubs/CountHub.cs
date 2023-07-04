@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Web.Models;
-
 namespace Web.Hubs
 {
    public sealed class CountHub : Hub<ICountHub>

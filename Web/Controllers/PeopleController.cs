@@ -3,46 +3,42 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Web.Hubs;
 using Web.Models;
+using Web.Repositories;
+
 namespace Web.Controllers
 {
    public class PeopleController : Controller
    {
-      private readonly DataAccessContext Context;
-
+      private readonly RepositoryPeopleBase RepositoryPeople;
       private readonly IHubContext<CountHub, ICountHub> HubCountContext;
 
       private async Task SendHubCountAsync()
       {
-         await HubCountContext.Clients.All.SendCountAsync(await Context.Peoples.AsNoTracking().LongCountAsync());
+         await HubCountContext.Clients.All.SendCountAsync(await RepositoryPeople.CountAsync());
       }
 
-      public PeopleController(DataAccessContext context, IHubContext<CountHub, ICountHub> hubCountContext)
+      public PeopleController(DataAccessContext context, IHubContext<CountHub, ICountHub> hubCountContext, RepositoryPeopleBase repositoryPeople)
       {
-         Context = context;
+         RepositoryPeople = repositoryPeople;
          HubCountContext = hubCountContext;
       }
 
-      public async Task<IActionResult> Index()
+      public IActionResult Index()
       {
-         return Context.Peoples != null ?
-                     View(await Context.Peoples.ToListAsync()) :
-                     Problem("Entity set 'DataAccessContext.Peoples'  is null.");
+         return View(RepositoryPeople.AllAsync());
       }
 
       public async Task<IActionResult> Details(long? id)
       {
-         if (id == null || Context.Peoples == null)
+         if (id == null)
          {
             return NotFound();
          }
-
-         var people = await Context.Peoples
-             .FirstOrDefaultAsync(m => m.Id == id);
+         var people = await RepositoryPeople.FindAsync(id);
          if (people == null)
          {
             return NotFound();
          }
-
          return View(people);
       }
 
@@ -57,7 +53,7 @@ namespace Web.Controllers
       {
          if (ModelState.IsValid)
          {
-            Context.Add(people);
+            await RepositoryPeople.AddAsync(people);
             if ((await Context.SaveChangesAsync()) > 0)
             {
                await SendHubCountAsync();
