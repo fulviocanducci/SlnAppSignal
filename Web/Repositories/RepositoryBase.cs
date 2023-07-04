@@ -27,6 +27,11 @@ namespace Web.Repositories
          return _model.AsAsyncEnumerable();
       }
 
+      public IAsyncEnumerable<T> AllAsync(Func<IQueryable<T>, IOrderedQueryable<T>> orderByBuilder)
+      {
+         return orderByBuilder.Invoke(_model).AsNoTrackingWithIdentityResolution().AsAsyncEnumerable();
+      }
+
       public async Task<bool> AnyAsync(Expression<Func<T, bool>> where)
       {
          return await _model.AsNoTracking().AnyAsync(where);

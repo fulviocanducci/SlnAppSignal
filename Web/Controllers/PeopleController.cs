@@ -44,7 +44,7 @@ namespace Web.Controllers
 
       public IActionResult Index()
       {
-         return View(RepositoryPeople.AllAsync());
+         return View(RepositoryPeople.AllAsync(x => x.OrderBy(a => a.Name)));
       }
 
       public async Task<IActionResult> Details(long? id)
