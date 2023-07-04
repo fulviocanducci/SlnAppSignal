@@ -1,4 +1,6 @@
-﻿namespace Web.Models
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+namespace Web.Models
 {
    public sealed class People
    {
@@ -21,6 +23,10 @@
       }
 
       public long Id { get; set; }
+
+      [Required(ErrorMessage = "Digite o nome completo")]      
+      [MaxLength(100, ErrorMessage = "Até 100 caracteres")]
+      [DisplayName("Nome completo")]
       public string Name { get; set; } = null!;
    }
 }
